@@ -185,7 +185,7 @@
         window.addEventListener('resize', resize);
         resize();
 
-        let gameState = 'menu'; // 'menu', 'playing', 'gameover'
+        let gameState = 'menu'; 
         let score = 0;
         let objects = [];
         let particles = [];
@@ -205,33 +205,44 @@
             return { x: clientX - rect.left, y: clientY - rect.top };
         }
 
-        function startSlice(e) {
+        // Единая функция для старта движения
+        function handleStart(e) {
             if (gameState !== 'playing') return;
+            e.preventDefault();
             isSlicing = true;
-            mouseTrail = [];
-            mouseTrail.push(getPointerPos(e));
+            mouseTrail = [getPointerPos(e)];
         }
 
-        function moveSlice(e) {
+        // Единая функция для движения
+        function handleMove(e) {
             if (!isSlicing || gameState !== 'playing') return;
+            e.preventDefault();
             mouseTrail.push(getPointerPos(e));
             if (mouseTrail.length > 15) mouseTrail.shift();
         }
 
-        function endSlice() {
+        // Единая функция для конца движения
+        function handleEnd(e) {
+            if (e) e.preventDefault();
             isSlicing = false;
             mouseTrail = [];
         }
 
-        // Обработчики для мыши и тача
-        canvas.addEventListener('mousedown', startSlice);
-        canvas.addEventListener('mousemove', moveSlice);
-        window.addEventListener('mouseup', endSlice);
-        
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startSlice(e); }, {passive: false});
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); moveSlice(e); }, {passive: false});
-        window.addEventListener('touchend', endSlice);
-        window.addEventListener('touchcancel', endSlice);
+        // Привязываем события с учетом мобильных устройств и ПК
+        if (window.PointerEvent) {
+            canvas.addEventListener('pointerdown', handleStart);
+            canvas.addEventListener('pointermove', handleMove);
+            window.addEventListener('pointerup', handleEnd);
+            window.addEventListener('pointercancel', handleEnd);
+        } else {
+            // Фоллбэк для старых браузеров
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+            canvas.addEventListener('touchstart', handleStart, {passive: false});
+            canvas.addEventListener('touchmove', handleMove, {passive: false});
+            window.addEventListener('touchend', handleEnd);
+        }
 
         // --- ТИПЫ ОБЪЕКТОВ ---
         const TYPES = {
@@ -249,7 +260,7 @@
                 
                 const targetX = Math.random() * width;
                 const targetY = Math.random() * (height * 0.4) + 50;
-                const speed = Math.random() * 2 + 12; // Скорость полета
+                const speed = Math.random() * 2 + 12; 
                 
                 const angle = Math.atan2(targetY - this.y, targetX - this.x);
                 this.vx = Math.cos(angle) * speed;
@@ -273,7 +284,6 @@
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation);
 
-                // Тень
                 ctx.beginPath();
                 ctx.arc(5, 5, this.type.radius, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
@@ -288,19 +298,16 @@
                     ctx.lineWidth = 3;
                     ctx.strokeStyle = '#444';
                     ctx.stroke();
-                    // Блик бомбы
                     ctx.beginPath();
                     ctx.arc(-this.type.radius/3, -this.type.radius/3, this.type.radius/4, 0, Math.PI*2);
                     ctx.fillStyle = 'rgba(255,255,255,0.2)';
                     ctx.fill();
-                    // Фитиль
                     ctx.beginPath();
                     ctx.moveTo(0, -this.type.radius);
                     ctx.quadraticCurveTo(20, -this.type.radius - 20, 15, -this.type.radius - 40);
                     ctx.strokeStyle = '#888';
                     ctx.lineWidth = 4;
                     ctx.stroke();
-                    // Искра
                     ctx.beginPath();
                     ctx.arc(15, -this.type.radius - 40, 8, 0, Math.PI*2);
                     ctx.fillStyle = '#ffcc00';
@@ -321,7 +328,6 @@
                 } else {
                     ctx.fillStyle = this.type.color;
                     ctx.fill();
-                    // Блик
                     ctx.beginPath();
                     ctx.arc(-10, -10, this.type.radius/3, 0, Math.PI*2);
                     ctx.fillStyle = 'rgba(255,255,255,0.3)';
@@ -373,7 +379,6 @@
                 const obj = objects[i];
                 if (obj.sliced) continue;
 
-                // Проверка пересечения линии и круга
                 const dx = p2.x - p1.x;
                 const dy = p2.y - p1.y;
                 const len = Math.sqrt(dx*dx + dy*dy);
@@ -397,7 +402,7 @@
             
             if (obj.type.isEdible) {
                 score += obj.type.points;
-                scoreEl.className = 'score-board'; // Сброс цвета
+                scoreEl.className = 'score-board'; 
                 for(let i=0; i<20; i++) particles.push(new Particle(obj.x, obj.y, obj.type.inner, false));
             } else {
                 score += obj.type.points;
@@ -405,7 +410,6 @@
                 setTimeout(() => { if(score >= 0) scoreEl.className = 'score-board'; }, 300);
                 for(let i=0; i<30; i++) particles.push(new Particle(obj.x, obj.y, '#ff0000', true));
                 
-                // Эффект взрыва
                 flashEl.style.opacity = 0.6;
                 setTimeout(() => flashEl.style.opacity = 0, 100);
                 document.body.style.transform = `translate(${Math.random()*10-5}px, ${Math.random()*10-5}px)`;
@@ -430,10 +434,9 @@
         function gameLoop(timestamp) {
             if (gameState !== 'playing') return;
 
-            const dt = Math.min((timestamp - lastTime) / 16.66, 3); // Защита от лагов
+            const dt = Math.min((timestamp - lastTime) / 16.66, 3); 
             lastTime = timestamp;
 
-            // Отрисовка фона
             let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
             bgGrad.addColorStop(0, '#0f2027');
             bgGrad.addColorStop(0.5, '#203a43');
@@ -441,14 +444,12 @@
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, width, height);
 
-            // Спавн
             spawnTimer += dt;
             if (spawnTimer > 40) {
                 spawnObject();
                 spawnTimer = 0;
             }
 
-            // Объекты
             for (let i = objects.length - 1; i >= 0; i--) {
                 const obj = objects[i];
                 obj.update(dt);
@@ -466,7 +467,6 @@
                 }
             }
 
-            // Частицы
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.update(dt);
@@ -474,10 +474,8 @@
                 if (p.life <= 0) particles.splice(i, 1);
             }
 
-            // Разрезание
             checkSlices();
 
-            // Клинок
             if (isSlicing && mouseTrail.length > 1) {
                 ctx.beginPath();
                 ctx.moveTo(mouseTrail[0].x, mouseTrail[0].y);
@@ -525,7 +523,7 @@
 
         // --- РЕЙТИНГ ---
         function saveScore() {
-            if (playerNameInput.disabled) return; // Защита от двойного клика
+            if (playerNameInput.disabled) return; 
             
             let name = playerNameInput.value.trim();
             if (name === '') name = 'Аноним';
@@ -559,7 +557,8 @@
             });
         }
 
-        // Привязка кнопок
+        // Запуск
         startBtn.addEventListener('click', startGame);
         saveBtn.addEventListener('click', saveScore);
+        
     
