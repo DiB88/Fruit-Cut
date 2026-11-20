@@ -11,9 +11,9 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #1a1a2e;
+            background-color: #0f2027;
             font-family: 'Russo One', sans-serif;
-            touch-action: none; /* Отключаем скролл на телефонах */
+            touch-action: none;
             user-select: none;
         }
 
@@ -21,7 +21,6 @@
             display: block;
             width: 100vw;
             height: 100vh;
-            cursor: crosshair;
         }
 
         #ui-layer {
@@ -31,51 +30,53 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-sizing: border-box;
             padding: 20px;
+            box-sizing: border-box;
         }
 
-        .score-board {
+        #score {
             color: #fff;
             font-size: 32px;
             text-shadow: 2px 2px 4px #000, 0 0 10px #ffcc00;
-            pointer-events: none;
             transition: transform 0.1s;
         }
 
-        .score-board.negative {
+        #score.negative {
             color: #ff4d4d;
             text-shadow: 2px 2px 4px #000, 0 0 10px #ff0000;
         }
 
-        #menu {
+        #menu, #game-over {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(26, 26, 46, 0.9);
+            background: rgba(15, 32, 39, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
             pointer-events: auto;
-            transition: opacity 0.3s;
+            z-index: 10;
             backdrop-filter: blur(5px);
         }
 
-        #menu.hidden {
-            opacity: 0;
-            pointer-events: none;
+        #game-over {
+            display: none;
+            background: rgba(0, 0, 0, 0.9);
         }
 
         h1 {
-            font-size: 48px;
-            margin: 0 0 20px 0;
+            font-size: 42px;
+            margin: 0 0 10px 0;
             text-align: center;
             color: #ffcc00;
             text-shadow: 0 0 20px #ff8c00;
+        }
+
+        p {
+            font-size: 18px;
+            text-align: center;
+            margin: 10px 0;
         }
 
         .btn {
@@ -88,35 +89,18 @@
             border-radius: 30px;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: transform 0.1s;
+            margin-top: 20px;
         }
 
         .btn:active {
             transform: scale(0.95);
         }
 
-        #game-over {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85);
-            padding: 30px;
-            border-radius: 20px;
-            border: 2px solid #ffcc00;
-            text-align: center;
-            color: white;
-            display: none;
-            flex-direction: column;
-            pointer-events: auto;
-            width: 80%;
-            max-width: 400px;
-        }
-
-        #game-over h2 { color: #ff416c; margin-top: 0; }
-
         input[type="text"] {
             width: 80%;
-            padding: 10px;
+            max-width: 300px;
+            padding: 12px;
             margin: 15px 0;
             border-radius: 10px;
             border: none;
@@ -126,12 +110,12 @@
         }
 
         #leaderboard {
-            margin-top: 15px;
+            margin-top: 20px;
             text-align: left;
             font-size: 18px;
-            line-height: 1.5;
-            max-height: 150px;
-            overflow-y: auto;
+            line-height: 1.6;
+            width: 80%;
+            max-width: 300px;
         }
 
         .leader-item {
@@ -147,6 +131,7 @@
             background: red;
             opacity: 0;
             pointer-events: none;
+            z-index: 5;
             transition: opacity 0.1s;
         }
     </style>
@@ -154,38 +139,43 @@
 <body>
 
     <canvas id="gameCanvas"></canvas>
-    
     <div id="flash"></div>
 
     <div id="ui-layer">
-        <div class="score-board" id="score">Очки: 0</div>
+        <div id="score">Очки: 0</div>
     </div>
 
     <div id="menu">
-        <h1>🥷 Ниндзя Фруктов 🍉</h1>
+        <h1>🥷 Ниндзя 🍉</h1>
         <p>Разрезай еду (+1) и избегай бомб (-1)</p>
-        <p style="font-size: 14px; color: #aaa; margin-bottom: 20px;">Проводи пальцем или мышкой по экрану</p>
-        <button class="btn" onclick="startGame()">Играть</button>
+        <p style="font-size: 14px; color: #aaa;">Проводи пальцем или мышкой по экрану</p>
+        <button class="btn" id="start-btn">Играть</button>
     </div>
 
     <div id="game-over">
-        <h2>Игра Окончена!</h2>
-        <p>Ваш счет: <span id="final-score" style="color:#ffcc00; font-size: 24px;">0</span></p>
-        <input type="text" id="player-name" placeholder="Введите ваше имя" maxlength="10">
-        <button class="btn" style="font-size: 18px; padding: 10px 20px;" onclick="saveScore()">Сохранить</button>
+        <h1 style="color:#ff4d4d; font-size: 32px; margin-bottom: 5px;">Игра Окончена!</h1>
+        <p>Ваш счет: <span id="final-score" style="color:#ffcc00; font-size: 28px;">0</span></p>
+        <input type="text" id="player-name" placeholder="Ваше имя" maxlength="10">
+        <button class="btn" style="font-size: 18px; padding: 10px 25px;" id="save-btn">Сохранить</button>
         <div id="leaderboard">
-            <h3 style="text-align:center; margin-bottom: 10px;">🏆 Топ игроков</h3>
+            <h3 style="text-align:center; margin-bottom: 5px; color: #ffcc00;">🏆 Топ игроков</h3>
             <div id="leader-list"></div>
         </div>
     </div>
 
     <script>
+        // --- ИНИЦИАЛИЗАЦИЯ ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
-        const gameOverEl = document.getElementById('game-over');
         const menuEl = document.getElementById('menu');
+        const gameOverEl = document.getElementById('game-over');
         const flashEl = document.getElementById('flash');
+        const startBtn = document.getElementById('start-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const finalScoreEl = document.getElementById('final-score');
+        const playerNameInput = document.getElementById('player-name');
+        const leaderList = document.getElementById('leader-list');
 
         let width, height;
         function resize() {
@@ -195,18 +185,19 @@
         window.addEventListener('resize', resize);
         resize();
 
-        let gameState = 'menu'; // menu, playing, gameover
+        let gameState = 'menu'; // 'menu', 'playing', 'gameover'
         let score = 0;
         let objects = [];
         let particles = [];
         let missedCount = 0;
         let lastTime = 0;
         let spawnTimer = 0;
+        let animationId;
 
-        // --- УПРАВЛЕНИЕ МЫШЬЮ/ПАЛЬЦЕМ (КЛИНОК) ---
+        // --- УПРАВЛЕНИЕ ---
         let isSlicing = false;
         let mouseTrail = [];
-        
+
         function getPointerPos(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -214,61 +205,59 @@
             return { x: clientX - rect.left, y: clientY - rect.top };
         }
 
-        function handleStart(e) {
+        function startSlice(e) {
             if (gameState !== 'playing') return;
             isSlicing = true;
             mouseTrail = [];
-            const pos = getPointerPos(e);
-            mouseTrail.push({...pos, time: Date.now()});
+            mouseTrail.push(getPointerPos(e));
         }
 
-        function handleMove(e) {
+        function moveSlice(e) {
             if (!isSlicing || gameState !== 'playing') return;
-            const pos = getPointerPos(e);
-            mouseTrail.push({...pos, time: Date.now()});
-            if (mouseTrail.length > 10) mouseTrail.shift(); // Ограничиваем длину следа
+            mouseTrail.push(getPointerPos(e));
+            if (mouseTrail.length > 15) mouseTrail.shift();
         }
 
-        function handleEnd() {
+        function endSlice() {
             isSlicing = false;
+            mouseTrail = [];
         }
 
-        canvas.addEventListener('mousedown', handleStart);
-        canvas.addEventListener('mousemove', handleMove);
-        canvas.addEventListener('mouseup', handleEnd);
-        canvas.addEventListener('mouseleave', handleEnd);
+        // Обработчики для мыши и тача
+        canvas.addEventListener('mousedown', startSlice);
+        canvas.addEventListener('mousemove', moveSlice);
+        window.addEventListener('mouseup', endSlice);
         
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e); }, {passive: false});
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive: false});
-        canvas.addEventListener('touchend', handleEnd);
-        canvas.addEventListener('touchcancel', handleEnd);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startSlice(e); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); moveSlice(e); }, {passive: false});
+        window.addEventListener('touchend', endSlice);
+        window.addEventListener('touchcancel', endSlice);
 
-        // --- ИГРОВЫЕ ОБЪЕКТЫ ---
+        // --- ТИПЫ ОБЪЕКТОВ ---
         const TYPES = {
-            WATERMELON: { color: '#ff3366', inner: '#ff99aa', radius: 35, points: 1, isEdible: true, type: 'watermelon' },
-            APPLE: { color: '#cc0000', inner: '#ffcccc', radius: 28, points: 1, isEdible: true, type: 'apple' },
-            ORANGE: { color: '#ff8c00', inner: '#ffcc66', radius: 30, points: 1, isEdible: true, type: 'orange' },
-            BOMB: { color: '#333', inner: '#666', radius: 30, points: -1, isEdible: false, type: 'bomb' }
+            WATERMELON: { color: '#2e8b57', inner: '#ff3366', radius: 40, points: 1, isEdible: true, type: 'watermelon' },
+            APPLE: { color: '#cc0000', inner: '#ffcccc', radius: 30, points: 1, isEdible: true, type: 'apple' },
+            ORANGE: { color: '#ff8c00', inner: '#ffcc66', radius: 32, points: 1, isEdible: true, type: 'orange' },
+            BOMB: { color: '#222', inner: '#666', radius: 35, points: -1, isEdible: false, type: 'bomb' }
         };
 
         class GameObject {
             constructor(typeKey) {
                 this.type = TYPES[typeKey];
-                this.x = Math.random() * (width - 200) + 100;
-                this.y = height + 50;
+                this.x = Math.random() * (width - 100) + 50;
+                this.y = height + 100;
                 
-                // Физика полета
                 const targetX = Math.random() * width;
-                const targetY = Math.random() * (height * 0.4) + 100;
-                const speed = Math.random() * 4 + 5;
+                const targetY = Math.random() * (height * 0.4) + 50;
+                const speed = Math.random() * 2 + 12; // Скорость полета
                 
                 const angle = Math.atan2(targetY - this.y, targetX - this.x);
                 this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed - 5; // Компенсация гравитации
+                this.vy = Math.sin(angle) * speed;
                 
-                this.gravity = 0.15;
+                this.gravity = 0.3;
                 this.rotation = Math.random() * Math.PI * 2;
-                this.vr = (Math.random() - 0.5) * 0.1;
+                this.vr = (Math.random() - 0.5) * 0.2;
                 this.sliced = false;
             }
 
@@ -286,42 +275,47 @@
 
                 // Тень
                 ctx.beginPath();
-                ctx.arc(0, 0, this.type.radius + 5, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.arc(5, 5, this.type.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
                 ctx.fill();
 
-                // Основной объект
                 ctx.beginPath();
                 ctx.arc(0, 0, this.type.radius, 0, Math.PI * 2);
                 
-                // Рисуем разные текстуры
                 if (this.type.type === 'bomb') {
                     ctx.fillStyle = this.type.color;
                     ctx.fill();
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#444';
                     ctx.stroke();
+                    // Блик бомбы
+                    ctx.beginPath();
+                    ctx.arc(-this.type.radius/3, -this.type.radius/3, this.type.radius/4, 0, Math.PI*2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.fill();
                     // Фитиль
                     ctx.beginPath();
                     ctx.moveTo(0, -this.type.radius);
-                    ctx.quadraticCurveTo(15, -this.type.radius - 20, 10, -this.type.radius - 30);
-                    ctx.strokeStyle = '#ffaa00';
+                    ctx.quadraticCurveTo(20, -this.type.radius - 20, 15, -this.type.radius - 40);
+                    ctx.strokeStyle = '#888';
+                    ctx.lineWidth = 4;
                     ctx.stroke();
                     // Искра
                     ctx.beginPath();
-                    ctx.arc(10, -this.type.radius - 30, 5, 0, Math.PI*2);
-                    ctx.fillStyle = '#ffff00';
+                    ctx.arc(15, -this.type.radius - 40, 8, 0, Math.PI*2);
+                    ctx.fillStyle = '#ffcc00';
                     ctx.fill();
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#ffcc00';
                 } else if (this.type.type === 'watermelon') {
                     ctx.fillStyle = this.type.color;
                     ctx.fill();
-                    // Полоски
-                    ctx.strokeStyle = '#006600';
-                    ctx.lineWidth = 4;
-                    for(let i=0; i<5; i++) {
+                    ctx.strokeStyle = '#1a4d2e';
+                    ctx.lineWidth = 5;
+                    for(let i=0; i<6; i++) {
                         ctx.beginPath();
-                        ctx.moveTo(-this.type.radius, -this.type.radius + i*15);
-                        ctx.lineTo(this.type.radius, -this.type.radius + i*15);
+                        ctx.moveTo(-this.type.radius + 10, -this.type.radius + i*15);
+                        ctx.lineTo(this.type.radius - 10, -this.type.radius + i*15);
                         ctx.stroke();
                     }
                 } else {
@@ -330,28 +324,27 @@
                     // Блик
                     ctx.beginPath();
                     ctx.arc(-10, -10, this.type.radius/3, 0, Math.PI*2);
-                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
                     ctx.fill();
                 }
-
                 ctx.restore();
             }
         }
 
-        // --- ЧАСТИЦЫ (СОК) ---
+        // --- ЧАСТИЦЫ ---
         class Particle {
             constructor(x, y, color, isBomb) {
                 this.x = x;
                 this.y = y;
                 const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 8 + 2;
+                const speed = Math.random() * 10 + 2;
                 this.vx = Math.cos(angle) * speed;
                 this.vy = Math.sin(angle) * speed;
-                this.gravity = 0.2;
+                this.gravity = 0.4;
                 this.life = 1.0;
-                this.decay = Math.random() * 0.02 + 0.02;
+                this.decay = Math.random() * 0.03 + 0.02;
                 this.color = isBomb ? (Math.random() > 0.5 ? '#ff9900' : '#ff0000') : color;
-                this.size = Math.random() * 5 + 3;
+                this.size = Math.random() * 8 + 3;
             }
             update(dt) {
                 this.x += this.vx * dt;
@@ -360,7 +353,7 @@
                 this.life -= this.decay * dt;
             }
             draw() {
-                ctx.globalAlpha = this.life;
+                ctx.globalAlpha = Math.max(0, this.life);
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
@@ -369,23 +362,23 @@
             }
         }
 
-        // --- ПРОВЕРКА ПЕРЕСЕЧЕНИЯ С КЛИНКОМ ---
+        // --- ЛОГИКА РАЗРЕЗАНИЯ ---
         function checkSlices() {
             if (mouseTrail.length < 2) return;
 
             const p1 = mouseTrail[mouseTrail.length - 2];
             const p2 = mouseTrail[mouseTrail.length - 1];
 
-            objects.forEach(obj => {
-                if (obj.sliced) return;
-                
-                // Проверка пересечения линии клинка и круга объекта
+            for (let i = objects.length - 1; i >= 0; i--) {
+                const obj = objects[i];
+                if (obj.sliced) continue;
+
+                // Проверка пересечения линии и круга
                 const dx = p2.x - p1.x;
                 const dy = p2.y - p1.y;
                 const len = Math.sqrt(dx*dx + dy*dy);
-                if (len === 0) return;
+                if (len === 0) continue;
 
-                // Ближайшая точка на отрезке к центру круга
                 let t = ((obj.x - p1.x) * dx + (obj.y - p1.y) * dy) / (len * len);
                 t = Math.max(0, Math.min(1, t));
                 const closestX = p1.x + t * dx;
@@ -393,33 +386,33 @@
 
                 const dist = Math.hypot(obj.x - closestX, obj.y - closestY);
 
-                if (dist < obj.type.radius + 10) {
-                    sliceObject(obj);
+                if (dist < obj.type.radius + 15) {
+                    sliceObject(obj, i);
                 }
-            });
+            }
         }
 
-        function sliceObject(obj) {
+        function sliceObject(obj, index) {
             obj.sliced = true;
             
             if (obj.type.isEdible) {
                 score += obj.type.points;
-                scoreEl.className = 'score-board';
-                // Сок
-                for(let i=0; i<15; i++) particles.push(new Particle(obj.x, obj.y, obj.type.inner, false));
+                scoreEl.className = 'score-board'; // Сброс цвета
+                for(let i=0; i<20; i++) particles.push(new Particle(obj.x, obj.y, obj.type.inner, false));
             } else {
                 score += obj.type.points;
                 scoreEl.className = 'score-board negative';
-                setTimeout(() => scoreEl.className = 'score-board', 300);
-                // Взрыв
-                for(let i=0; i<20; i++) particles.push(new Particle(obj.x, obj.y, '#ff0000', true));
-                // Тряска и вспышка
-                flashEl.style.opacity = 0.5;
+                setTimeout(() => { if(score >= 0) scoreEl.className = 'score-board'; }, 300);
+                for(let i=0; i<30; i++) particles.push(new Particle(obj.x, obj.y, '#ff0000', true));
+                
+                // Эффект взрыва
+                flashEl.style.opacity = 0.6;
                 setTimeout(() => flashEl.style.opacity = 0, 100);
                 document.body.style.transform = `translate(${Math.random()*10-5}px, ${Math.random()*10-5}px)`;
                 setTimeout(() => document.body.style.transform = 'none', 50);
             }
             scoreEl.innerText = `Очки: ${score}`;
+            objects.splice(index, 1);
         }
 
         // --- ИГРОВОЙ ЦИКЛ ---
@@ -427,14 +420,9 @@
             const rand = Math.random();
             let typeKey = 'WATERMELON';
             
-            // Шанс спавна бомбы ~25%
-            if (rand < 0.25) {
-                typeKey = 'BOMB';
-            } else if (rand < 0.5) {
-                typeKey = 'APPLE';
-            } else if (rand < 0.75) {
-                typeKey = 'ORANGE';
-            }
+            if (rand < 0.3) typeKey = 'BOMB';
+            else if (rand < 0.55) typeKey = 'APPLE';
+            else if (rand < 0.8) typeKey = 'ORANGE';
 
             objects.push(new GameObject(typeKey));
         }
@@ -442,13 +430,10 @@
         function gameLoop(timestamp) {
             if (gameState !== 'playing') return;
 
-            const dt = (timestamp - lastTime) / 16.66; // Нормализация под 60 FPS
+            const dt = Math.min((timestamp - lastTime) / 16.66, 3); // Защита от лагов
             lastTime = timestamp;
 
-            // Очистка экрана
-            ctx.clearRect(0, 0, width, height);
-            
-            // Отрисовка фона (градиент)
+            // Отрисовка фона
             let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
             bgGrad.addColorStop(0, '#0f2027');
             bgGrad.addColorStop(0.5, '#203a43');
@@ -458,32 +443,30 @@
 
             // Спавн
             spawnTimer += dt;
-            if (spawnTimer > 50) { // Каждые ~0.8 секунды
+            if (spawnTimer > 40) {
                 spawnObject();
                 spawnTimer = 0;
             }
 
-            // Обновление объектов
+            // Объекты
             for (let i = objects.length - 1; i >= 0; i--) {
                 const obj = objects[i];
                 obj.update(dt);
                 obj.draw();
 
-                // Если объект упал вниз
-                if (obj.y > height + 100 && !obj.sliced) {
-                    if (obj.type.isEdible) {
+                if (obj.y > height + 100) {
+                    if (obj.type.isEdible && !obj.sliced) {
                         missedCount++;
                         if (missedCount >= 3) {
                             endGame();
+                            return;
                         }
                     }
-                    objects.splice(i, 1);
-                } else if (obj.sliced) {
                     objects.splice(i, 1);
                 }
             }
 
-            // Обновление частиц
+            // Частицы
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.update(dt);
@@ -491,32 +474,32 @@
                 if (p.life <= 0) particles.splice(i, 1);
             }
 
-            // Проверка разрезов
+            // Разрезание
             checkSlices();
 
-            // Отрисовка следа клинка
+            // Клинок
             if (isSlicing && mouseTrail.length > 1) {
                 ctx.beginPath();
                 ctx.moveTo(mouseTrail[0].x, mouseTrail[0].y);
                 for (let i = 1; i < mouseTrail.length; i++) {
                     ctx.lineTo(mouseTrail[i].x, mouseTrail[i].y);
                 }
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.lineWidth = 4;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.lineWidth = 6;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = 20;
                 ctx.shadowColor = '#00ffff';
                 ctx.stroke();
-                ctx.shadowBlur = 0; // Сброс
+                ctx.shadowBlur = 0;
             }
 
-            requestAnimationFrame(gameLoop);
+            animationId = requestAnimationFrame(gameLoop);
         }
 
-        // --- ЛОГИКА ИГРЫ ---
+        // --- УПРАВЛЕНИЕ ИГРОЙ ---
         function startGame() {
-            menuEl.classList.add('hidden');
+            menuEl.style.display = 'none';
             gameOverEl.style.display = 'none';
             gameState = 'playing';
             score = 0;
@@ -526,41 +509,57 @@
             mouseTrail = [];
             scoreEl.innerText = `Очки: 0`;
             scoreEl.className = 'score-board';
+            playerNameInput.disabled = false;
+            playerNameInput.value = '';
             lastTime = performance.now();
-            requestAnimationFrame(gameLoop);
+            if(animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(gameLoop);
         }
 
         function endGame() {
             gameState = 'gameover';
-            document.getElementById('final-score').innerText = score;
+            finalScoreEl.innerText = score;
             gameOverEl.style.display = 'flex';
             updateLeaderboard();
         }
 
-        // --- РЕЙТИНГ (LOCALSTORAGE) ---
+        // --- РЕЙТИНГ ---
         function saveScore() {
-            const nameInput = document.getElementById('player-name').value.trim();
-            const name = nameInput === '' ? 'Аноним' : nameInput;
+            if (playerNameInput.disabled) return; // Защита от двойного клика
+            
+            let name = playerNameInput.value.trim();
+            if (name === '') name = 'Аноним';
             
             let leaderboard = JSON.parse(localStorage.getItem('ninjaLeaderboard')) || [];
             leaderboard.push({ name: name, score: score });
             
-            // Сортируем по убыванию и оставляем топ-5
             leaderboard.sort((a, b) => b.score - a.score);
             leaderboard = leaderboard.slice(0, 5);
             
             localStorage.setItem('ninjaLeaderboard', JSON.stringify(leaderboard));
             updateLeaderboard();
-            document.getElementById('player-name').value = '';
-            document.getElementById('player-name').disabled = true;
+            playerNameInput.value = '';
+            playerNameInput.disabled = true;
         }
 
         function updateLeaderboard() {
-            const leaderList = document.getElementById('leader-list');
             const leaderboard = JSON.parse(localStorage.getItem('ninjaLeaderboard')) || [];
-            
             leaderList.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                leaderList.innerHTML = '<div style="text-align:center; color:#aaa;">Пока нет рекордов</div>';
+                return;
+            }
+
             leaderboard.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = 'leader-item';
-                div.innerHTML = `<span>${index + 1}. ${item.name}</
+                div.innerHTML = `<span>${index + 1}. ${item.name}</span> <span style="color:#ffcc00">${item.score}</span>`;
+                leaderList.appendChild(div);
+            });
+        }
+
+        // Привязка кнопок
+        startBtn.addEventListener('click', startGame);
+        saveBtn.addEventListener('click', saveScore);
+    
