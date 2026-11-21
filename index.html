@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -146,6 +145,7 @@ canvas {
     pointer-events: none;
     opacity: 0;
     transform: scale(.5);
+    transition: opacity .15s, transform .15s;
 }
 
 #flash {
@@ -155,6 +155,7 @@ canvas {
     opacity: 0;
     background: #ff182f;
     pointer-events: none;
+    transition: opacity .12s;
 }
 
 .screen {
@@ -210,8 +211,6 @@ canvas {
     box-shadow: 0 5px 25px rgba(255,65,108,.4);
     transition: transform .15s;
 }
-
-.btn, .hud-btn { touch-action: manipulation; }
 
 .btn:active {
     transform: scale(.94);
@@ -326,7 +325,7 @@ input {
 
         <div class="hud-right">
             <div class="hud-buttons">
-                <button type="button" class="hud-btn" id="pauseBtn">Ⅱ</button>
+                <button class="hud-btn" id="pauseBtn">Ⅱ</button>
             </div>
 
             <div class="hud-panel">
@@ -367,7 +366,7 @@ input {
         <div class="legend-item"><b>❄️</b>Замедление времени</div>
     </div>
 
-    <button type="button" class="btn" id="startBtn">⚔ ИГРАТЬ</button>
+    <button class="btn" id="startBtn">⚔ ИГРАТЬ</button>
 
     <p class="small" style="margin-top:15px">
         Проводи пальцем или мышкой по фруктам
@@ -383,11 +382,11 @@ input {
 
     <p class="subtitle">Ниндзя тоже должен отдыхать.</p>
 
-    <button type="button" class="btn btn-green" id="resumeBtn">
+    <button class="btn btn-green" id="resumeBtn">
         ПРОДОЛЖИТЬ
     </button>
 
-    <button type="button" class="btn btn-blue" id="restartPauseBtn">
+    <button class="btn btn-blue" id="restartPauseBtn">
         НАЧАТЬ ЗАНОВО
     </button>
 
@@ -410,7 +409,7 @@ input {
     <input id="playerName" type="text" maxlength="10"
            placeholder="Имя ниндзя" autocomplete="off">
 
-    <button type="button" class="btn btn-blue" id="saveBtn">
+    <button class="btn btn-blue" id="saveBtn">
         СОХРАНИТЬ РЕКОРД
     </button>
 
@@ -421,7 +420,7 @@ input {
         <div id="leaderList"></div>
     </div>
 
-    <button type="button" class="btn" id="restartBtn">🔄 ЕЩЁ РАЗ</button>
+    <button class="btn" id="restartBtn">🔄 ЕЩЁ РАЗ</button>
 
 </div>
 
@@ -582,14 +581,15 @@ class GameObject {
 
         this.x = x ?? random(45,Math.max(46,W-45));
 
-        // Фрукты появляются НАД экраном.
-        this.y = y ?? -this.type.radius-random(10,70);
+        // Фрукты появляются СНИЗУ экрана и летят вверх
+        this.y = y ?? H + this.type.radius + random(10,70);
 
-        // Положительная скорость направлена вниз.
-        this.vy = random(1.4,3.5)+level*.08;
-        this.vx = random(-1.9,1.9);
+        // Отрицательная скорость = вверх
+        this.vy = -random(9,14) - level * 0.15;
+        this.vx = random(-2.5,2.5);
 
-        this.gravity = random(.025,.055);
+        // Положительная гравитация = вниз
+        this.gravity = random(0.25,0.35);
 
         this.rotation = random(0,Math.PI*2);
         this.vr = random(-.07,.07);
@@ -650,7 +650,7 @@ class GameObject {
 }
 
 // ===========================================
-// ПОЛОВИНКИ ФРУКТОВ
+// ПОЛОВИНКИ ФРУКТОВ (теперь полукругом)
 // ===========================================
 
 class FruitHalf {
@@ -683,14 +683,14 @@ class FruitHalf {
         ctx.rotate(this.rotation);
         ctx.globalAlpha=Math.max(0,this.life);
 
+        // Полукруглый клип вместо прямоугольного
         ctx.beginPath();
-
         if(this.side===0) {
-            ctx.rect(-35,-35,35,70);
+            ctx.arc(0,0,35,Math.PI/2,Math.PI*1.5);
         } else {
-            ctx.rect(0,-35,35,70);
+            ctx.arc(0,0,35,-Math.PI/2,Math.PI/2);
         }
-
+        ctx.closePath();
         ctx.clip();
 
         ctx.font='55px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
@@ -799,8 +799,11 @@ function spawnWave() {
             type='freeze';
         }
 
-        const x=spacing*(i+1)+random(-22,22);
-        const y=-random(20,100)-i*12;
+        // Клампим X, чтобы не вылезти за края на узких экранах
+        const x = clamp(spacing*(i+1)+random(-22,22), 45, Math.max(46, W-45));
+
+        // Спавн СНИЗУ экрана (за нижним краем)
+        const y = H + 40 + random(0,80) + i*12;
 
         objects.push(new GameObject(type,x,y));
     }
@@ -852,6 +855,7 @@ function sliceObject(obj,index) {
             obj.x,obj.y,'❄ SLOW MOTION','#65eaff',22
         ));
 
+        updateHUD();
         return;
     }
 
@@ -999,7 +1003,8 @@ function checkSlices(p1,p2) {
             obj.x-cx,obj.y-cy
         );
 
-        if(distance<obj.radius+14) {
+        // Увеличен радиус для лучшей сенсорности на мобильных
+        if(distance<obj.radius+22) {
             sliceObject(obj,i);
         }
     }
@@ -1092,10 +1097,19 @@ function drawBackground(time) {
     ctx.strokeStyle='rgba(100,200,255,.035)';
     ctx.lineWidth=1;
 
+    // Вертикальная сетка
     for(let x=0;x<W;x+=55) {
         ctx.beginPath();
         ctx.moveTo(x,0);
         ctx.lineTo(x,H);
+        ctx.stroke();
+    }
+
+    // Горизонтальная сетка
+    for(let y=0;y<H;y+=55) {
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.lineTo(W,y);
         ctx.stroke();
     }
 }
@@ -1197,6 +1211,7 @@ function gameLoop(timestamp) {
         obj.update(dt);
         obj.draw();
 
+        // Объект улетел вниз за экран — считаем пропущенным
         if(obj.y>H+obj.radius+10) {
             objects.splice(i,1);
 
@@ -1278,8 +1293,6 @@ function gameLoop(timestamp) {
         }
     }
 
-    updateHUD();
-
     animationId=requestAnimationFrame(gameLoop);
 }
 
@@ -1293,223 +1306,4 @@ function startGame() {
         animationId=null;
     }
 
-    state='playing';
-    saved=false;
-
-    $('menu').style.display='none';
-    $('gameOver').style.display='none';
-    $('pauseScreen').style.display='none';
-
-    score=0;
-    level=1;
-    lives=3;
-
-    objects=[];
-    particles=[];
-    halves=[];
-    texts=[];
-    trail=[];
-
-    isSlicing=false;
-    spawnTimer=0;
-    shake=0;
-
-    slowTime=0;
-    comboCount=0;
-    lastSliceTime=0;
-    comboDisplayTime=0;
-    totalFruit=0;
-
-    $('combo').style.opacity='0';
-
-    $('playerName').value='';
-    $('playerName').disabled=false;
-
-    $('saveBtn').disabled=false;
-    $('saveBtn').style.opacity='1';
-
-    $('saveStatus').textContent='';
-
-    lastTime=performance.now();
-
-    updateHUD();
-    playSound(550,.15);
-
-    animationId=requestAnimationFrame(gameLoop);
-}
-
-// ===========================================
-// ПАУЗА
-// ===========================================
-
-function pauseGame() {
-    if(state!=='playing') return;
-
-    state='paused';
-    stopSlice();
-
-    $('pauseScreen').style.display='flex';
-
-    if(animationId!==null) {
-        cancelAnimationFrame(animationId);
-        animationId=null;
-    }
-}
-
-function resumeGame() {
-    if(state!=='paused') return;
-
-    state='playing';
-    $('pauseScreen').style.display='none';
-
-    lastTime=performance.now();
-
-    animationId=requestAnimationFrame(gameLoop);
-}
-
-// ===========================================
-// КОНЕЦ ИГРЫ
-// ===========================================
-
-function endGame() {
-    if(state!=='playing') return;
-
-    state='gameover';
-    stopSlice();
-
-    if(animationId!==null) {
-        cancelAnimationFrame(animationId);
-        animationId=null;
-    }
-
-    $('finalScore').textContent=score;
-
-    $('finalLevel').textContent=
-        'Достигнут уровень: '+level+
-        ' · Разрезано фруктов: '+totalFruit;
-
-    $('gameOver').style.display='flex';
-
-    playSound(130,.4,'triangle');
-
-    updateLeaderboard();
-}
-
-// ===========================================
-// РЕКОРДЫ
-// ===========================================
-
-function getRecords() {
-    try {
-        const data=JSON.parse(
-            localStorage.getItem('ninjaLeaderboard')
-        );
-
-        return Array.isArray(data)?data:[];
-    } catch(e) {
-        return [];
-    }
-}
-
-function saveScore() {
-    if(saved || state!=='gameover') return;
-
-    const name=(
-        $('playerName').value.trim() || 'Аноним'
-    ).slice(0,10);
-
-    const records=getRecords();
-
-    records.push({
-        name,
-        score,
-        level
-    });
-
-    records.sort((a,b)=>b.score-a.score);
-
-    try {
-        localStorage.setItem(
-            'ninjaLeaderboard',
-            JSON.stringify(records.slice(0,5))
-        );
-
-        saved=true;
-
-        $('playerName').disabled=true;
-        $('saveBtn').disabled=true;
-        $('saveBtn').style.opacity='.5';
-
-        $('saveStatus').textContent='🏆 РЕКОРД СОХРАНЁН!';
-
-        updateLeaderboard();
-        playSound(900,.2);
-
-    } catch(e) {
-        $('saveStatus').textContent='Не удалось сохранить рекорд';
-    }
-}
-
-function updateLeaderboard() {
-    const records=getRecords();
-    const list=$('leaderList');
-
-    list.replaceChildren();
-
-    if(records.length===0) {
-        const empty=document.createElement('p');
-        empty.textContent='Пока нет рекордов';
-        empty.className='small';
-        list.appendChild(empty);
-        return;
-    }
-
-    records.slice(0,5).forEach((item,index)=>{
-        const row=document.createElement('div');
-        row.className='leader-item';
-
-        const name=document.createElement('span');
-        const points=document.createElement('span');
-
-        const medals=['🥇','🥈','🥉','4.','5.'];
-
-        name.textContent=
-            medals[index]+' '+String(item.name||'Аноним').slice(0,10);
-
-        points.textContent=Number(item.score)||0;
-
-        row.append(name,points);
-        list.appendChild(row);
-    });
-}
-
-// ===========================================
-// КНОПКИ
-// ===========================================
-
-$('startBtn').addEventListener('click',startGame);
-$('restartBtn').addEventListener('click',startGame);
-$('restartPauseBtn').addEventListener('click',startGame);
-$('pauseBtn').addEventListener('click',pauseGame);
-$('resumeBtn').addEventListener('click',resumeGame);
-$('saveBtn').addEventListener('click',saveScore);
-
-// ===========================================
-// ЗАГРУЗКА РЕКОРДА
-// ===========================================
-
-try {
-    best=Math.max(
-        0,
-        ...getRecords().map(item=>Number(item.score)||0)
-    );
-} catch(e) {
-    best=0;
-}
-
-updateHUD();
-updateLeaderboard();
-
-</script>
-</body>
-</html>
+    state='
