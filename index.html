@@ -3,8 +3,8 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ninja Fruit Slicer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>NINJA FRUIT - Ultimate Edition</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
@@ -18,188 +18,291 @@
 
 body {
     overflow: hidden;
-    background: #101d2a;
+    background: #071522;
     font-family: 'Russo One', sans-serif;
-    touch-action: none;
+    color: white;
     user-select: none;
+    touch-action: none;
 }
 
 canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     display: block;
-    width: 100vw;
-    height: 100vh;
     touch-action: none;
 }
 
-#ui {
+#hud {
     position: fixed;
     inset: 0;
-    padding: 18px;
+    padding: 14px;
     pointer-events: none;
-    z-index: 2;
+    z-index: 3;
 }
 
-.top-bar {
+.hud-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 8px;
 }
 
-.score-box {
-    color: white;
+.hud-panel {
+    padding: 9px 13px;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 15px;
+    background: rgba(5,18,32,.68);
+    backdrop-filter: blur(8px);
+}
+
+.score-label {
+    color: #9bb1c3;
+    font-size: 10px;
+}
+
+.score-value {
+    color: #ffda42;
     font-size: 27px;
-    text-shadow: 0 0 12px #ffb700;
+    text-shadow: 0 0 12px #ff9d00;
 }
 
-.missed-box {
-    color: white;
+.level-value {
+    color: #4deaff;
+    font-size: 15px;
+    margin-top: 3px;
+}
+
+.lives {
+    color: #ff5a74;
     font-size: 19px;
-    text-shadow: 0 0 10px red;
-    text-align: right;
+    letter-spacing: 2px;
+    margin-top: 3px;
 }
 
-#missed {
-    color: #ff5151;
+.hud-right {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.hud-buttons {
+    display: flex;
+    gap: 6px;
+    pointer-events: auto;
+}
+
+.hud-btn {
+    border: 1px solid rgba(255,255,255,.2);
+    background: rgba(5,18,32,.8);
+    color: white;
+    width: 39px;
+    height: 39px;
+    border-radius: 12px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.progress-wrap {
+    position: absolute;
+    top: 104px;
+    left: 15px;
+    right: 15px;
+    height: 5px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.12);
+    overflow: hidden;
+}
+
+#progress {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg,#00d9ff,#9b65ff);
+    transition: width .2s;
+}
+
+#powerStatus {
+    position: absolute;
+    top: 120px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #67eaff;
+    font-size: 13px;
+    text-shadow: 0 0 12px #00bfff;
+}
+
+#combo {
+    position: absolute;
+    top: 34%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: clamp(25px,7vw,48px);
+    color: #ffe45c;
+    text-shadow: 0 0 20px #ff7900;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(.5);
 }
 
 #flash {
     position: fixed;
     inset: 0;
-    background: #ff0000;
-    opacity: 0;
-    pointer-events: none;
     z-index: 5;
+    opacity: 0;
+    background: #ff182f;
+    pointer-events: none;
 }
 
 .screen {
     position: fixed;
     inset: 0;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: 20px;
-    background: rgba(7, 17, 28, 0.94);
-    backdrop-filter: blur(12px);
-    color: white;
-    z-index: 10;
+    padding: 22px;
+    overflow-y: auto;
+    background: rgba(3,13,26,.94);
+    backdrop-filter: blur(14px);
 }
 
-#gameOver {
+#gameOver,
+#pauseScreen {
     display: none;
-    background: rgba(5, 9, 17, 0.96);
-    overflow-y: auto;
 }
 
 .logo {
-    font-size: clamp(38px, 8vw, 65px);
-    color: #ffcc00;
-    text-shadow: 0 0 25px #ff6600;
+    font-size: clamp(39px,9vw,68px);
+    color: #ffcf35;
+    text-shadow: 0 0 12px #ff8c00, 0 0 35px #ff5100;
     margin-bottom: 12px;
 }
 
 .subtitle {
-    color: #d4e2ed;
-    font-size: 16px;
-    line-height: 1.7;
-    margin: 8px 0;
+    color: #c7d9e9;
+    font-size: 15px;
+    line-height: 1.8;
+    margin: 10px 0;
 }
 
-.hint {
-    color: #8fa7b9;
-    font-size: 13px;
-    margin-top: 8px;
+.small {
+    color: #8fa9bd;
+    font-size: 12px;
+    line-height: 1.8;
 }
 
 .btn {
     border: none;
-    outline: none;
-    margin-top: 25px;
-    padding: 16px 48px;
     border-radius: 50px;
+    padding: 15px 42px;
+    margin-top: 20px;
     color: white;
     font-family: inherit;
-    font-size: 23px;
-    background: linear-gradient(45deg, #ff416c, #ff4b2b);
-    box-shadow: 0 5px 25px rgba(255, 65, 108, 0.4);
+    font-size: 21px;
     cursor: pointer;
-    transition: transform .15s, filter .15s;
+    background: linear-gradient(45deg,#ff416c,#ff4b2b);
+    box-shadow: 0 5px 25px rgba(255,65,108,.4);
+    transition: transform .15s;
 }
 
 .btn:active {
     transform: scale(.94);
-    filter: brightness(1.2);
 }
 
-.secondary {
-    margin-top: 12px;
-    padding: 12px 30px;
-    font-size: 17px;
-    background: linear-gradient(45deg, #2878d0, #00b4db);
+.btn-blue {
+    background: linear-gradient(45deg,#087cf0,#00c9e9);
+}
+
+.btn-green {
+    background: linear-gradient(45deg,#00b878,#00d9a0);
 }
 
 input {
     width: 85%;
     max-width: 300px;
     padding: 13px;
-    margin-top: 18px;
-    border: 2px solid #ffcc00;
+    margin-top: 15px;
+    background: #122a40;
+    color: white;
+    border: 2px solid #ffcf35;
     border-radius: 12px;
     outline: none;
-    background: #172b3a;
-    color: white;
     text-align: center;
     font-family: inherit;
-    font-size: 17px;
-}
-
-input::placeholder {
-    color: #9aabba;
+    font-size: 16px;
 }
 
 #finalScore {
-    color: #ffcc00;
-    font-size: 42px;
-    margin: 12px 0;
-    text-shadow: 0 0 15px #ff9900;
+    color: #ffda42;
+    font-size: 48px;
+    text-shadow: 0 0 18px #ff9900;
+    margin: 10px;
 }
 
 #leaderboard {
     width: 90%;
     max-width: 330px;
-    margin-top: 22px;
+    margin-top: 20px;
 }
 
 #leaderboard h3 {
-    color: #ffcc00;
-    font-size: 20px;
-    margin-bottom: 12px;
+    color: #ffcf35;
+    margin-bottom: 10px;
 }
 
 .leader-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px 5px;
-    border-bottom: 1px solid rgba(255,255,255,.15);
-    font-size: 14px;
+    padding: 7px 5px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    font-size: 13px;
 }
 
 .leader-item span:last-child {
-    color: #ffcc00;
+    color: #ffda42;
 }
 
 #saveStatus {
-    color: #8cff9b;
+    min-height: 18px;
+    color: #73ffad;
     font-size: 12px;
     margin-top: 8px;
-    min-height: 16px;
 }
 
-@media(max-height: 600px) {
+.legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    max-width: 340px;
+    width: 100%;
+    margin-top: 18px;
+}
+
+.legend-item {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    padding: 9px;
+    font-size: 12px;
+}
+
+.legend-item b {
+    font-size: 20px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+@media(max-height:650px) {
     .logo { font-size: 38px; }
-    .btn { margin-top: 12px; padding: 12px 35px; }
-    #leaderboard { margin-top: 10px; }
+    .legend { gap: 5px; margin-top: 8px; }
+    .legend-item { padding: 5px; }
+    .btn { margin-top: 12px; padding: 12px 30px; }
     .subtitle { font-size: 13px; }
 }
 </style>
@@ -207,1013 +310,658 @@ input::placeholder {
 
 <body>
 
-<canvas id="gameCanvas"></canvas>
-
+<canvas id="game"></canvas>
 <div id="flash"></div>
 
-<div id="ui">
-    <div class="top-bar">
-        <div class="score-box">
-            🍉 <span id="score">0</span>
-        </div>
-        <div class="missed-box">
-            Пропущено:
-            <span id="missed">0/3</span>
-        </div>
-    </div>
-</div>
+<div id="hud">
+    <div class="hud-top">
 
-<!-- ГЛАВНОЕ МЕНЮ -->
+        <div class="hud-panel">
+            <div class="score-label">ТВОИ ОЧКИ</div>
+            <div class="score-value" id="score">0</div>
+            <div class="level-value" id="level">УРОВЕНЬ 1</div>
+        </div>
+
+        <div class="hud-right">
+            <div class="hud-buttons">
+                <button class="hud-btn" id="pauseBtn">Ⅱ</button>
+            </div>
+
+            <div class="hud-panel">
+                <div class="score-label">РЕКОРД</div>
+                <div class="score-value" id="best" style="font-size:19px">0</div>
+                <div class="lives" id="lives">❤️❤️❤️</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="progress-wrap">
+        <div id="progress"></div>
+    </div>
+
+    <div id="powerStatus"></div>
+    <div id="combo">COMBO!</div>
+</div>
 
 <div class="screen" id="menu">
 
-    <div class="logo">🥷 NINJA</div>
+    <div class="logo">🥷 NINJA FRUIT</div>
 
-    <div style="font-size:42px;margin-bottom:12px">
-        🍉 🍎 🍊
+    <div style="font-size:40px;margin:5px">
+        🍉 🍎 🍊 🍇
     </div>
 
     <p class="subtitle">
-        Разрезай фрукты и набирай очки!<br>
-        Избегай опасных бомб!
+        Настоящий путь ниндзя начинается здесь!<br>
+        Разрезай фрукты. Создавай комбо.<br>
+        Стань легендой!
     </p>
 
-    <p class="hint">
-        👆 Проводи пальцем по экрану<br>
-        🖱 Или используй мышку
-    </p>
+    <div class="legend">
+        <div class="legend-item"><b>🍉</b>Фрукт +1</div>
+        <div class="legend-item"><b>💣</b>Бомба -5</div>
+        <div class="legend-item"><b>⭐</b>Золотой +5</div>
+        <div class="legend-item"><b>❄️</b>Замедление времени</div>
+    </div>
 
-    <button class="btn" id="startBtn">
-        ИГРАТЬ
-    </button>
+    <button class="btn" id="startBtn">⚔ ИГРАТЬ</button>
 
-    <p class="hint" style="margin-top:25px">
-        🍉 Фрукт = +1 очко<br>
-        💣 Бомба = -1 очко
+    <p class="small" style="margin-top:15px">
+        Проводи пальцем или мышкой по фруктам
     </p>
 
 </div>
 
-<!-- ЭКРАН КОНЦА ИГРЫ -->
+<div class="screen" id="pauseScreen">
+
+    <div style="font-size:60px">⏸️</div>
+
+    <div class="logo" style="font-size:40px">ПАУЗА</div>
+
+    <p class="subtitle">Ниндзя тоже должен отдыхать.</p>
+
+    <button class="btn btn-green" id="resumeBtn">
+        ПРОДОЛЖИТЬ
+    </button>
+
+    <button class="btn btn-blue" id="restartPauseBtn">
+        НАЧАТЬ ЗАНОВО
+    </button>
+
+</div>
 
 <div class="screen" id="gameOver">
 
-    <div style="font-size:48px">💥</div>
+    <div style="font-size:55px">💥</div>
 
-    <h1 style="color:#ff5151;font-size:32px;margin-top:8px">
-        ИГРА ОКОНЧЕНА!
+    <h1 style="color:#ff596b;font-size:30px">
+        ИГРА ОКОНЧЕНА
     </h1>
 
-    <p class="subtitle">Твой результат:</p>
+    <p class="subtitle">ТВОЙ РЕЗУЛЬТАТ</p>
 
     <div id="finalScore">0</div>
 
-    <input
-        type="text"
-        id="playerName"
-        maxlength="10"
-        placeholder="Твоё имя"
-        autocomplete="off"
-    >
+    <p id="finalLevel" class="small"></p>
 
-    <button class="btn secondary" id="saveBtn">
+    <input id="playerName" type="text" maxlength="10"
+           placeholder="Имя ниндзя" autocomplete="off">
+
+    <button class="btn btn-blue" id="saveBtn">
         СОХРАНИТЬ РЕКОРД
     </button>
 
     <div id="saveStatus"></div>
 
     <div id="leaderboard">
-        <h3>🏆 ТОП ИГРОКОВ</h3>
+        <h3>🏆 ЛЕГЕНДЫ НИНДЗЯ</h3>
         <div id="leaderList"></div>
     </div>
 
-    <button class="btn" id="restartBtn">
-        🔄 ИГРАТЬ СНОВА
-    </button>
+    <button class="btn" id="restartBtn">🔄 ЕЩЁ РАЗ</button>
 
 </div>
 
 <script>
+'use strict';
 
-// ======================================
-// ИНИЦИАЛИЗАЦИЯ
-// ======================================
+// ===========================================
+// ОСНОВНЫЕ ПЕРЕМЕННЫЕ
+// ===========================================
 
-const canvas = document.getElementById('gameCanvas');
+const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-const scoreEl = document.getElementById('score');
-const missedEl = document.getElementById('missed');
+const $ = id => document.getElementById(id);
 
-const menu = document.getElementById('menu');
-const gameOver = document.getElementById('gameOver');
+let W = 0;
+let H = 0;
+let DPR = 1;
 
-const startBtn = document.getElementById('startBtn');
-const restartBtn = document.getElementById('restartBtn');
-const saveBtn = document.getElementById('saveBtn');
-
-const finalScore = document.getElementById('finalScore');
-const playerName = document.getElementById('playerName');
-const leaderList = document.getElementById('leaderList');
-const saveStatus = document.getElementById('saveStatus');
-const flash = document.getElementById('flash');
-
-let width = 0;
-let height = 0;
-let dpr = 1;
-
-let gameState = 'menu';
+let state = 'menu';
 
 let score = 0;
-let missedCount = 0;
+let level = 1;
+let lives = 3;
+let best = 0;
 
 let objects = [];
 let particles = [];
-let floatingTexts = [];
+let halves = [];
+let texts = [];
+
+let trail = [];
+let isSlicing = false;
 
 let lastTime = 0;
 let spawnTimer = 0;
 let animationId = null;
 
-let isSlicing = false;
-let trail = [];
-
 let shake = 0;
+let slowTime = 0;
+let comboCount = 0;
+let lastSliceTime = 0;
+let comboDisplayTime = 0;
+let totalFruit = 0;
+
+let audioContext = null;
+let soundEnabled = true;
 let saved = false;
 
-// ======================================
-// РАЗМЕРЫ CANVAS
-// ======================================
+const random = (min,max) =>
+    Math.random() * (max-min) + min;
+
+const clamp = (v,min,max) =>
+    Math.max(min,Math.min(max,v));
+
+// ===========================================
+// CANVAS
+// ===========================================
 
 function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
 
-    width = window.innerWidth;
-    height = window.innerHeight;
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
 
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
 }
 
-window.addEventListener('resize', resize);
+window.addEventListener('resize',resize);
 resize();
 
-// ======================================
+// ===========================================
+// ЗВУК
+// ===========================================
+
+function playSound(freq=400,duration=.08,type='sine') {
+    if(!soundEnabled) return;
+
+    try {
+        if(!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if(audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(freq,audioContext.currentTime);
+
+        gain.gain.setValueAtTime(.07,audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+            .001,
+            audioContext.currentTime+duration
+        );
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime+duration);
+    } catch(e) {}
+}
+
+// ===========================================
 // ТИПЫ ОБЪЕКТОВ
-// ======================================
+// ===========================================
 
 const TYPES = {
-
-    watermelon: {
-        radius: 39,
-        color: '#23964f',
-        inner: '#ff3266',
-        points: 1,
-        edible: true,
-        emoji: '🍉'
-    },
-
     apple: {
-        radius: 30,
-        color: '#e32929',
-        inner: '#ffaaaa',
-        points: 1,
-        edible: true,
-        emoji: '🍎'
+        emoji:'🍎', radius:29, color:'#ff3939',
+        points:1, kind:'fruit'
     },
-
+    watermelon: {
+        emoji:'🍉', radius:39, color:'#35dc72',
+        points:1, kind:'fruit'
+    },
     orange: {
-        radius: 31,
-        color: '#ff941f',
-        inner: '#ffd080',
-        points: 1,
-        edible: true,
-        emoji: '🍊'
+        emoji:'🍊', radius:30, color:'#ff9e30',
+        points:1, kind:'fruit'
     },
-
+    grape: {
+        emoji:'🍇', radius:29, color:'#ae79ff',
+        points:1, kind:'fruit'
+    },
+    pineapple: {
+        emoji:'🍍', radius:34, color:'#ffe04b',
+        points:1, kind:'fruit'
+    },
+    golden: {
+        emoji:'⭐', radius:28, color:'#ffdf35',
+        points:5, kind:'golden'
+    },
+    freeze: {
+        emoji:'❄️', radius:27, color:'#54ddff',
+        points:0, kind:'freeze'
+    },
     bomb: {
-        radius: 34,
-        color: '#222222',
-        inner: '#ff3333',
-        points: -1,
-        edible: false,
-        emoji: '💣'
+        emoji:'💣', radius:33, color:'#ff3434',
+        points:-5, kind:'bomb'
     }
 };
 
-// ======================================
-// ИГРОВОЙ ОБЪЕКТ
-// ======================================
+// ===========================================
+// ПАДАЮЩИЕ ФРУКТЫ
+// ===========================================
 
 class GameObject {
-
-    constructor(type) {
-
+    constructor(type,x,y) {
         this.type = TYPES[type];
-        this.kind = type;
+        this.name = type;
 
-        this.x = Math.random() * Math.max(1, width - 100) + 50;
-        this.y = height + 60;
+        this.x = x ?? random(45,Math.max(46,W-45));
 
-        const targetX = Math.random() * width;
-        const targetY = height * (0.15 + Math.random() * 0.25);
+        // Фрукты появляются НАД экраном.
+        this.y = y ?? -this.type.radius-random(10,70);
 
-        const speed = 10 + Math.random() * 3;
+        // Положительная скорость направлена вниз.
+        this.vy = random(1.4,3.5)+level*.08;
+        this.vx = random(-1.9,1.9);
 
-        const angle = Math.atan2(
-            targetY - this.y,
-            targetX - this.x
-        );
+        this.gravity = random(.025,.055);
 
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
+        this.rotation = random(0,Math.PI*2);
+        this.vr = random(-.07,.07);
 
-        this.gravity = 0.25;
-
-        this.rotation = Math.random() * Math.PI * 2;
-        this.vr = (Math.random() - 0.5) * 0.12;
-
+        this.radius = this.type.radius;
         this.sliced = false;
+        this.pulse = random(0,Math.PI*2);
     }
 
     update(dt) {
+        this.x += this.vx*dt;
+        this.y += this.vy*dt;
+        this.vy += this.gravity*dt;
+        this.rotation += this.vr*dt;
+        this.pulse += .07*dt;
 
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
+        if(this.x < this.radius) {
+            this.x = this.radius;
+            this.vx = Math.abs(this.vx);
+        }
 
-        this.vy += this.gravity * dt;
-
-        this.rotation += this.vr * dt;
+        if(this.x > W-this.radius) {
+            this.x = W-this.radius;
+            this.vx = -Math.abs(this.vx);
+        }
     }
 
     draw() {
-
         ctx.save();
 
-        ctx.translate(this.x, this.y);
+        ctx.translate(this.x,this.y);
         ctx.rotate(this.rotation);
 
-        if (this.kind === 'bomb') {
+        const r = this.radius;
 
-            // Корпус бомбы
-
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = '#ff3333';
-
-            ctx.beginPath();
-            ctx.arc(0, 0, this.type.radius, 0, Math.PI * 2);
-
-            ctx.fillStyle = '#222';
-            ctx.fill();
-
-            ctx.strokeStyle = '#666';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            ctx.shadowBlur = 0;
-
-            // Блик
-
-            ctx.beginPath();
-            ctx.arc(-11, -11, 8, 0, Math.PI * 2);
-
-            ctx.fillStyle = '#777';
-            ctx.fill();
-
-            // Фитиль
-
-            ctx.beginPath();
-            ctx.moveTo(0, -this.type.radius);
-            ctx.quadraticCurveTo(15, -60, 15, -70);
-
-            ctx.strokeStyle = '#aaa';
-            ctx.lineWidth = 5;
-            ctx.stroke();
-
-            // Искра
-
-            ctx.beginPath();
-            ctx.arc(15, -70, 7, 0, Math.PI * 2);
-
-            ctx.fillStyle = '#ffcc00';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#ff6600';
-            ctx.fill();
-
-        } else {
-
-            // Тень
-
-            ctx.beginPath();
-            ctx.ellipse(5, 9, this.type.radius, this.type.radius * .85, 0, 0, Math.PI * 2);
-
-            ctx.fillStyle = 'rgba(0,0,0,.25)';
-            ctx.fill();
-
-            // Фрукт
-
-            ctx.beginPath();
-            ctx.arc(0, 0, this.type.radius, 0, Math.PI * 2);
-
-            ctx.fillStyle = this.type.color;
-            ctx.shadowBlur = 15;
+        if(this.name==='golden' || this.name==='freeze') {
+            ctx.shadowBlur = 18+Math.sin(this.pulse)*5;
             ctx.shadowColor = this.type.color;
-            ctx.fill();
-
-            ctx.shadowBlur = 0;
-
-            // Арбузная кожура
-
-            if (this.kind === 'watermelon') {
-
-                ctx.save();
-
-                ctx.beginPath();
-                ctx.arc(0, 0, this.type.radius, 0, Math.PI * 2);
-                ctx.clip();
-
-                ctx.strokeStyle = '#145d35';
-                ctx.lineWidth = 5;
-
-                for (let i = -3; i <= 3; i++) {
-
-                    ctx.beginPath();
-                    ctx.moveTo(-45, i * 13);
-                    ctx.lineTo(45, i * 13);
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-
-            } else {
-
-                // Блик на фруктах
-
-                ctx.beginPath();
-                ctx.arc(-10, -10, 8, 0, Math.PI * 2);
-
-                ctx.fillStyle = 'rgba(255,255,255,.4)';
-                ctx.fill();
-
-                // Хвостик
-
-                ctx.beginPath();
-                ctx.moveTo(0, -this.type.radius + 4);
-                ctx.lineTo(4, -this.type.radius - 9);
-
-                ctx.strokeStyle = '#5a8d38';
-                ctx.lineWidth = 4;
-                ctx.stroke();
-            }
         }
+
+        if(this.name==='bomb') {
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#ff2424';
+        }
+
+        ctx.beginPath();
+        ctx.arc(3,5,r,0,Math.PI*2);
+        ctx.fillStyle='rgba(0,0,0,.25)';
+        ctx.fill();
+
+        ctx.font = `${r*2.15}px "Apple Color Emoji","Segoe UI Emoji",sans-serif`;
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(this.type.emoji,0,0);
 
         ctx.restore();
     }
 }
 
-// ======================================
+// ===========================================
+// ПОЛОВИНКИ ФРУКТОВ
+// ===========================================
+
+class FruitHalf {
+    constructor(obj,side) {
+        this.x=obj.x;
+        this.y=obj.y;
+        this.emoji=obj.type.emoji;
+        this.side=side;
+
+        this.vx=random(-4,4)+(side===0?-1:1)*2;
+        this.vy=random(-5,-2);
+        this.gravity=.22;
+
+        this.rotation=random(0,6);
+        this.vr=random(-.18,.18);
+        this.life=1;
+    }
+
+    update(dt) {
+        this.x+=this.vx*dt;
+        this.y+=this.vy*dt;
+        this.vy+=this.gravity*dt;
+        this.rotation+=this.vr*dt;
+        this.life-=.013*dt;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x,this.y);
+        ctx.rotate(this.rotation);
+        ctx.globalAlpha=Math.max(0,this.life);
+
+        ctx.beginPath();
+
+        if(this.side===0) {
+            ctx.rect(-35,-35,35,70);
+        } else {
+            ctx.rect(0,-35,35,70);
+        }
+
+        ctx.clip();
+
+        ctx.font='55px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(this.emoji,0,0);
+
+        ctx.restore();
+    }
+}
+
+// ===========================================
 // ЧАСТИЦЫ
-// ======================================
+// ===========================================
 
 class Particle {
+    constructor(x,y,color,options={}) {
+        this.x=x;
+        this.y=y;
 
-    constructor(x, y, color, isBomb = false) {
+        const angle=random(0,Math.PI*2);
+        const speed=random(2,options.speed||9);
 
-        this.x = x;
-        this.y = y;
-
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 9 + 2;
-
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-
-        this.gravity = .35;
-
-        this.life = 1;
-        this.decay = .018 + Math.random() * .025;
-
-        this.size = Math.random() * 7 + 3;
-
-        this.color = isBomb
-            ? (Math.random() > .5 ? '#ff3300' : '#ffcc00')
-            : color;
+        this.vx=Math.cos(angle)*speed;
+        this.vy=Math.sin(angle)*speed;
+        this.gravity=.2;
+        this.life=1;
+        this.size=random(2,options.size||8);
+        this.color=color;
+        this.decay=random(.018,.035);
     }
 
     update(dt) {
-
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-
-        this.vy += this.gravity * dt;
-
-        this.life -= this.decay * dt;
+        this.x+=this.vx*dt;
+        this.y+=this.vy*dt;
+        this.vy+=this.gravity*dt;
+        this.life-=this.decay*dt;
     }
 
     draw() {
-
         ctx.save();
-
-        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.globalAlpha=Math.max(0,this.life);
+        ctx.fillStyle=this.color;
 
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-
-        ctx.fillStyle = this.color;
+        ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
         ctx.fill();
 
         ctx.restore();
     }
 }
 
-// ======================================
-// ВСПЛЫВАЮЩИЙ ТЕКСТ
-// ======================================
+// ===========================================
+// ВСПЛЫВАЮЩИЕ НАДПИСИ
+// ===========================================
 
 class FloatingText {
-
-    constructor(x, y, text, color) {
-
-        this.x = x;
-        this.y = y;
-
-        this.text = text;
-        this.color = color;
-
-        this.life = 1;
+    constructor(x,y,text,color,size=23) {
+        this.x=x;
+        this.y=y;
+        this.text=text;
+        this.color=color;
+        this.size=size;
+        this.life=1;
     }
 
     update(dt) {
-
-        this.y -= 1.5 * dt;
-        this.life -= .025 * dt;
+        this.y-=1.3*dt;
+        this.life-=.022*dt;
     }
 
     draw() {
-
         ctx.save();
 
-        ctx.globalAlpha = Math.max(0, this.life);
-
-        ctx.font = 'bold 25px Russo One';
-        ctx.textAlign = 'center';
-
-        ctx.fillStyle = this.color;
-
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-
-        ctx.fillText(this.text, this.x, this.y);
+        ctx.globalAlpha=Math.max(0,this.life);
+        ctx.font=`bold ${this.size}px Russo One`;
+        ctx.textAlign='center';
+        ctx.fillStyle=this.color;
+        ctx.shadowBlur=15;
+        ctx.shadowColor=this.color;
+        ctx.fillText(this.text,this.x,this.y);
 
         ctx.restore();
     }
 }
 
-// ======================================
-// СОЗДАНИЕ ОБЪЕКТОВ
-// ======================================
+// ===========================================
+// ПОЯВЛЕНИЕ ВОЛН
+// ===========================================
 
-function spawnObject() {
+function spawnWave() {
+    const count = Math.random()<.45 ? 3 : 2;
+    const spacing = W/(count+1);
 
-    const rand = Math.random();
+    const types=['apple','watermelon','orange','grape','pineapple'];
 
-    let type;
+    for(let i=0;i<count;i++) {
+        let type=types[Math.floor(Math.random()*types.length)];
+        const roll=Math.random();
 
-    if (rand < .22) {
-        type = 'bomb';
-    } else if (rand < .48) {
-        type = 'apple';
-    } else if (rand < .73) {
-        type = 'orange';
-    } else {
-        type = 'watermelon';
-    }
-
-    objects.push(new GameObject(type));
-}
-
-// ======================================
-// РАЗРЕЗАНИЕ ОБЪЕКТОВ
-// ======================================
-
-function checkSlices() {
-
-    if (trail.length < 2) return;
-
-    const p1 = trail[trail.length - 2];
-    const p2 = trail[trail.length - 1];
-
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-
-    const len2 = dx * dx + dy * dy;
-
-    if (len2 === 0) return;
-
-    for (let i = objects.length - 1; i >= 0; i--) {
-
-        const obj = objects[i];
-
-        if (obj.sliced) continue;
-
-        let t = (
-            (obj.x - p1.x) * dx +
-            (obj.y - p1.y) * dy
-        ) / len2;
-
-        t = Math.max(0, Math.min(1, t));
-
-        const closestX = p1.x + t * dx;
-        const closestY = p1.y + t * dy;
-
-        const distance = Math.hypot(
-            obj.x - closestX,
-            obj.y - closestY
-        );
-
-        if (distance < obj.type.radius + 14) {
-            sliceObject(obj, i);
-        }
-    }
-}
-
-function sliceObject(obj, index) {
-
-    obj.sliced = true;
-
-    score += obj.type.points;
-
-    scoreEl.textContent = score;
-
-    if (obj.type.edible) {
-
-        floatingTexts.push(
-            new FloatingText(obj.x, obj.y, '+1', '#80ff9b')
-        );
-
-        for (let i = 0; i < 22; i++) {
-
-            particles.push(
-                new Particle(
-                    obj.x,
-                    obj.y,
-                    obj.type.inner
-                )
-            );
+        if(roll<.17) {
+            type='bomb';
+        } else if(roll<.22) {
+            type='golden';
+        } else if(roll<.27) {
+            type='freeze';
         }
 
-    } else {
+        const x=spacing*(i+1)+random(-22,22);
+        const y=-random(20,100)-i*12;
 
-        floatingTexts.push(
-            new FloatingText(obj.x, obj.y, '-1 💥', '#ff4444')
-        );
-
-        for (let i = 0; i < 35; i++) {
-
-            particles.push(
-                new Particle(
-                    obj.x,
-                    obj.y,
-                    '#ff3300',
-                    true
-                )
-            );
-        }
-
-        shake = 12;
-
-        flash.style.opacity = '.45';
-
-        setTimeout(() => {
-            flash.style.opacity = '0';
-        }, 100);
-    }
-
-    objects.splice(index, 1);
-}
-
-// ======================================
-// УПРАВЛЕНИЕ
-// ======================================
-
-function getPointerPosition(e) {
-
-    const rect = canvas.getBoundingClientRect();
-
-    return {
-        x: (e.clientX - rect.left) * width / rect.width,
-        y: (e.clientY - rect.top) * height / rect.height
-    };
-}
-
-canvas.addEventListener('pointerdown', e => {
-
-    if (gameState !== 'playing') return;
-
-    e.preventDefault();
-
-    isSlicing = true;
-
-    trail = [getPointerPosition(e)];
-
-    try {
-        canvas.setPointerCapture(e.pointerId);
-    } catch (_) {}
-});
-
-canvas.addEventListener('pointermove', e => {
-
-    if (!isSlicing || gameState !== 'playing') return;
-
-    e.preventDefault();
-
-    trail.push(getPointerPosition(e));
-
-    if (trail.length > 15) {
-        trail.shift();
-    }
-
-    checkSlices();
-});
-
-function stopSlicing() {
-
-    isSlicing = false;
-    trail = [];
-}
-
-canvas.addEventListener('pointerup', stopSlicing);
-canvas.addEventListener('pointercancel', stopSlicing);
-
-window.addEventListener('blur', stopSlicing);
-
-// ======================================
-// ФОН
-// ======================================
-
-function drawBackground() {
-
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-
-    gradient.addColorStop(0, '#101d2a');
-    gradient.addColorStop(.5, '#1c3d50');
-    gradient.addColorStop(1, '#102b42');
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-
-    // Декоративные звёзды
-
-    ctx.fillStyle = 'rgba(255,255,255,.12)';
-
-    for (let i = 0; i < 25; i++) {
-
-        const x = (i * 137) % width;
-        const y = (i * 83) % height;
-
-        ctx.beginPath();
-        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-        ctx.fill();
+        objects.push(new GameObject(type,x,y));
     }
 }
 
-// ======================================
-// ИГРОВОЙ ЦИКЛ
-// ======================================
+// ===========================================
+// РАЗРЕЗАНИЕ
+// ===========================================
 
-function gameLoop(timestamp) {
+function sliceObject(obj,index) {
+    if(obj.sliced) return;
 
-    if (gameState !== 'playing') return;
+    obj.sliced=true;
+    const now=performance.now();
 
-    const dt = Math.min((timestamp - lastTime) / 16.666, 2.5);
+    objects.splice(index,1);
 
-    lastTime = timestamp;
+    // БОМБА
 
-    ctx.save();
+    if(obj.name==='bomb') {
+        score=Math.max(0,score-5);
+        shake=17;
 
-    // Тряска экрана
+        flashScreen();
+        playSound(85,.35,'sawtooth');
 
-    if (shake > .2) {
+        burst(obj.x,obj.y,'#ff3030',35);
 
-        ctx.translate(
-            (Math.random() - .5) * shake,
-            (Math.random() - .5) * shake
-        );
+        texts.push(new FloatingText(
+            obj.x,obj.y,'💥 -5','#ff5555',29
+        ));
 
-        shake *= .85;
+        comboCount=0;
+        comboDisplayTime=0;
 
-    } else {
-        shake = 0;
+        updateHUD();
+        return;
     }
 
-    drawBackground();
+    // ЗАМОРОЗКА
 
-    // Появление фруктов
+    if(obj.name==='freeze') {
+        slowTime=now+5000;
 
-    spawnTimer += dt;
+        playSound(850,.2,'sine');
+        burst(obj.x,obj.y,'#65eaff',30);
 
-    if (spawnTimer > Math.max(22, 43 - score * .15)) {
-
-        spawnObject();
-
-        spawnTimer = 0;
-    }
-
-    // Объекты
-
-    for (let i = objects.length - 1; i >= 0; i--) {
-
-        const obj = objects[i];
-
-        obj.update(dt);
-        obj.draw();
-
-        // Объект упал за экран
-
-        if (obj.y > height + 90) {
-
-            if (obj.type.edible && !obj.sliced) {
-
-                missedCount++;
-
-                missedEl.textContent = missedCount + '/3';
-
-                if (missedCount >= 3) {
-
-                    ctx.restore();
-
-                    endGame();
-                    return;
-                }
-            }
-
-            objects.splice(i, 1);
-        }
-    }
-
-    // Частицы
-
-    for (let i = particles.length - 1; i >= 0; i--) {
-
-        const p = particles[i];
-
-        p.update(dt);
-        p.draw();
-
-        if (p.life <= 0) {
-            particles.splice(i, 1);
-        }
-    }
-
-    // Всплывающий текст
-
-    for (let i = floatingTexts.length - 1; i >= 0; i--) {
-
-        const t = floatingTexts[i];
-
-        t.update(dt);
-        t.draw();
-
-        if (t.life <= 0) {
-            floatingTexts.splice(i, 1);
-        }
-    }
-
-    // След катаны
-
-    if (isSlicing && trail.length > 1) {
-
-        ctx.beginPath();
-
-        ctx.moveTo(trail[0].x, trail[0].y);
-
-        for (let i = 1; i < trail.length; i++) {
-            ctx.lineTo(trail[i].x, trail[i].y);
-        }
-
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 6;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        ctx.shadowBlur = 18;
-        ctx.shadowColor = '#00ffff';
-
-        ctx.stroke();
-
-        ctx.shadowBlur = 0;
-    }
-
-    ctx.restore();
-
-    animationId = requestAnimationFrame(gameLoop);
-}
-
-// ======================================
-// СТАРТ ИГРЫ
-// ======================================
-
-function startGame() {
-
-    if (animationId !== null) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-
-    menu.style.display = 'none';
-    gameOver.style.display = 'none';
-
-    gameState = 'playing';
-
-    score = 0;
-    missedCount = 0;
-
-    objects = [];
-    particles = [];
-    floatingTexts = [];
-
-    trail = [];
-    isSlicing = false;
-
-    spawnTimer = 0;
-    shake = 0;
-
-    saved = false;
-
-    scoreEl.textContent = '0';
-    missedEl.textContent = '0/3';
-
-    playerName.value = '';
-    playerName.disabled = false;
-
-    saveBtn.disabled = false;
-    saveBtn.style.opacity = '1';
-
-    saveStatus.textContent = '';
-
-    lastTime = performance.now();
-
-    animationId = requestAnimationFrame(gameLoop);
-}
-
-// ======================================
-// КОНЕЦ ИГРЫ
-// ======================================
-
-function endGame() {
-
-    if (gameState !== 'playing') return;
-
-    gameState = 'gameover';
-
-    isSlicing = false;
-    trail = [];
-
-    if (animationId !== null) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-
-    finalScore.textContent = score;
-
-    gameOver.style.display = 'flex';
-
-    updateLeaderboard();
-}
-
-// ======================================
-// СОХРАНЕНИЕ РЕКОРДОВ
-// ======================================
-
-function getLeaderboard() {
-
-    try {
-
-        const data = JSON.parse(
-            localStorage.getItem('ninjaLeaderboard')
-        );
-
-        return Array.isArray(data) ? data : [];
-
-    } catch (e) {
-
-        return [];
-    }
-}
-
-function saveScore() {
-
-    if (saved || gameState !== 'gameover') return;
-
-    let name = playerName.value.trim();
-
-    if (!name) {
-        name = 'Аноним';
-    }
-
-    name = name.slice(0, 10);
-
-    const leaderboard = getLeaderboard();
-
-    leaderboard.push({
-        name: name,
-        score: score
-    });
-
-    leaderboard.sort((a, b) => b.score - a.score);
-
-    const topFive = leaderboard.slice(0, 5);
-
-    try {
-
-        localStorage.setItem(
-            'ninjaLeaderboard',
-            JSON.stringify(topFive)
-        );
-
-        saved = true;
-
-        playerName.disabled = true;
-
-        saveBtn.disabled = true;
-        saveBtn.style.opacity = '.5';
-
-        saveStatus.textContent = '✅ Рекорд сохранён!';
-
-        updateLeaderboard();
-
-    } catch (e) {
-
-        saveStatus.textContent = 'Ошибка сохранения рекорда';
-    }
-}
-
-// ======================================
-// ТАБЛИЦА РЕКОРДОВ
-// ======================================
-
-function updateLeaderboard() {
-
-    const leaderboard = getLeaderboard();
-
-    leaderList.replaceChildren();
-
-    if (leaderboard.length === 0) {
-
-        const empty = document.createElement('div');
-
-        empty.textContent = 'Пока нет рекордов. Стань первым!';
-
-        empty.style.color = '#aaa';
-        empty.style.textAlign = 'center';
-        empty.style.fontSize = '13px';
-
-        leaderList.appendChild(empty);
+        texts.push(new FloatingText(
+            obj.x,obj.y,'❄ SLOW MOTION','#65eaff',22
+        ));
 
         return;
     }
 
-    leaderboard.forEach((item, index) => {
+    // КОМБО
 
-        const div = document.createElement('div');
+    if(now-lastSliceTime<1000) {
+        comboCount++;
+    } else {
+        comboCount=1;
+    }
 
-        div.className = 'leader-item';
+    lastSliceTime=now;
 
-        const name = document.createElement('span');
-        const points = document.createElement('span');
+    const multiplier=Math.min(
+        5,1+Math.floor((comboCount-1)/3)
+    );
 
-        const medals = ['🥇', '🥈', '🥉', '4.', '5.'];
+    let points=obj.type.points;
 
-        name.textContent =
-            medals[index] + ' ' + String(item.name || 'Аноним').slice(0, 10);
+    if(obj.name==='golden') {
+        points=5;
+    }
 
-        points.textContent = Number(item.score) || 0;
+    const critical=Math.random()<.13;
 
-        div.appendChild(name);
-        div.appendChild(points);
+    if(critical) {
+        points*=3;
+    }
 
-        leaderList.appendChild(div);
-    });
+    const earned=points*multiplier;
+
+    score+=earned;
+    totalFruit++;
+
+    halves.push(new FruitHalf(obj,0));
+    halves.push(new FruitHalf(obj,1));
+
+    const color=obj.type.color;
+
+    burst(obj.x,obj.y,color,obj.name==='golden'?35:20);
+
+    let message='+'+earned;
+
+    if(critical) {
+        message='CRITICAL! +'+earned;
+    } else if(multiplier>1) {
+        message='COMBO x'+multiplier+' +'+earned;
+    } else if(obj.name==='golden') {
+        message='GOLDEN +'+earned;
+    }
+
+    texts.push(new FloatingText(
+        obj.x,obj.y,message,
+        critical?'#ffdf40':color,
+        critical?25:21
+    ));
+
+    if(comboCount>=3) {
+        comboDisplayTime=900;
+        $('combo').textContent='🔥 '+comboCount+' HIT COMBO!';
+        $('combo').style.opacity='1';
+        $('combo').style.transform='scale(1.1)';
+    }
+
+    playSound(
+        critical?950:520,
+        .09,
+        critical?'triangle':'sine'
+    );
+
+    const newLevel=1+Math.floor(score/20);
+
+    if(newLevel>level) {
+        level=newLevel;
+
+        texts.push(new FloatingText(
+            W/2,H*.3,'LEVEL '+level+'! 🚀','#52eaff',32
+        ));
+
+        playSound(1100,.3,'triangle');
+    }
+
+    if(score>best) {
+        best=score;
+    }
+
+    updateHUD();
 }
 
-// ======================================
-// КНОПКИ
-// ======================================
+// ===========================================
+// ЧАСТИЦЫ
+// ===========================================
 
-startBtn.addEventListener('click', startGame);
+function burst(x,y,color,count) {
+    for(let i=0;i<count;i++) {
+        particles.push(new Particle(x,y,color,{
+            speed:10,
+            size:8
+        }));
+    }
+}
 
-restartBtn.addEventListener('click', startGame);
+// ===========================================
+// ВЗРЫВ
+// ===========================================
 
-saveBtn.addEventListener('click', saveScore);
+function flashScreen() {
+    $('flash').style.opacity='.5';
 
-// Первоначальная таблица
+    setTimeout(()=>{
+        $('flash').style.opacity='0';
+    },110);
+}
 
-updateLeaderboard();
-
-</script>
-
-</body>
-</html>
+// ======
